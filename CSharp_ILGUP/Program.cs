@@ -307,7 +307,7 @@ namespace CSharp_ILGUP
 
             Stopwatch sw = Stopwatch.StartNew();
 
-            var img = new Bitmap(@"C:\src\0-R&D\Multiflash\multiflash\Test_data\1\0.bmp");
+            var img = new Bitmap(@"..\..\0.bmp");
             Console.WriteLine("Image readed");
             
             sw.Stop();

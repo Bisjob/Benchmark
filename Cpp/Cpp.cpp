@@ -323,7 +323,7 @@ int main(int argc, char* argv[])
 
 	int width = 0;
 	int height = 0;
-	auto data = readBMP("C:\\src\\0-R&D\\Multiflash\\multiflash\\Test_data\\1\\0.bmp", &width, &height);
+	auto data = readBMP("..\\..\\0.bmp", &width, &height);
 
 	std::cout << "Image readed " << std::endl;
 
