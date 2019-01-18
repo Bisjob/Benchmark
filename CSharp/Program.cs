@@ -24,7 +24,7 @@ namespace CSharp
             Stopwatch sw = Stopwatch.StartNew();
 
             var img = new Bitmap(@"..\..\0.bmp");
-            Console.WriteLine("Image readed");
+            Console.WriteLine("Image readed in " + sw.ElapsedMilliseconds + " ms");
 
             var buffer = ImageToByte(img);
             sw.Stop();

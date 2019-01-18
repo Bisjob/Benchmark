@@ -308,11 +308,8 @@ namespace CSharp_ILGUP
             Stopwatch sw = Stopwatch.StartNew();
 
             var img = new Bitmap(@"..\..\0.bmp");
-            Console.WriteLine("Image readed");
+            Console.WriteLine("Image readed in " + sw.ElapsedMilliseconds + " ms");
             
-            sw.Stop();
-            Console.WriteLine("Buffer extracted in " + sw.ElapsedMilliseconds + " ms");
-
             var data = ImageToByte(img);
             int size = img.Width * img.Height;
             int entete = data.Length - size;
@@ -320,6 +317,8 @@ namespace CSharp_ILGUP
 
             var Originbuffer = data.Skip<byte>(entete).Take<byte>(size).Select(v => (int)v).ToArray<int>();
             var outputBuffer = new int[Originbuffer.Length];
+
+            Console.WriteLine("Buffer extracted in " + sw.ElapsedMilliseconds + " ms");
 
             // Create the required ILGPU context
             using (var context = new Context())

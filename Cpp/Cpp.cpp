@@ -321,13 +321,14 @@ int main(int argc, char* argv[])
 	std::cout << "===== C++ Benchmark : Gradient 5x5 =====" << std::endl;
 	std::cout << "========================================" << std::endl;
 
+	clock_t begin_time = clock();
+
 	int width = 0;
 	int height = 0;
 	auto data = readBMP("..\\..\\0.bmp", &width, &height);
 
-	std::cout << "Image readed " << std::endl;
+	std::cout << "Image readed in " << float(clock() - begin_time) / CLOCKS_PER_SEC * 1000 << " ms" << std::endl;
 
-	clock_t begin_time = clock();
 	long time = 0;
 	for (size_t i = 0; i < count; i++)
 	{
