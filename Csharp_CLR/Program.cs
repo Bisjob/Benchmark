@@ -12,7 +12,7 @@ namespace Csharp_CLR
         {
             GradientCLR.GradientCLR gradient = new GradientCLR.GradientCLR();
 
-            gradient.Gradient();
+            //gradient.Gradient();
 
         }
     }
