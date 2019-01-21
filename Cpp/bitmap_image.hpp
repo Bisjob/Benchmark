@@ -76,15 +76,30 @@ public:
       load_bitmap();
    }
 
-   bitmap_image(const unsigned int width, const unsigned int height)
+   bitmap_image(const unsigned int width, const unsigned int height, const unsigned int bytesPerPixel)
    : file_name_(""),
      width_ (width ),
      height_(height),
      row_increment_  (0),
-     bytes_per_pixel_(3),
+     bytes_per_pixel_(bytesPerPixel),
      channel_mode_(bgr_mode)
    {
       create_bitmap();
+   }
+
+   bitmap_image(const unsigned char* buffer, const unsigned int width, const unsigned int height, const unsigned int bytesPerPixel)
+	   : file_name_(""),
+	   width_(width),
+	   height_(height),
+	   row_increment_(0),
+	   bytes_per_pixel_(bytesPerPixel),
+	   channel_mode_(bgr_mode)
+   {
+	   create_bitmap();
+	   for (unsigned char* itr = data(); itr < end(); )
+	   {
+		   *(itr++) = *(buffer++);
+	   }
    }
 
    bitmap_image(const bitmap_image& image)
@@ -458,14 +473,25 @@ public:
       bfh.size             = bfh.struct_size() + bih.struct_size() + bih.size_image;
       bfh.reserved1        = 0;
       bfh.reserved2        = 0;
-      bfh.off_bits         = bih.struct_size() + bfh.struct_size();
-
+      bfh.off_bits         = 1024 + bih.struct_size() + bfh.struct_size();
+	  
       write_bfh(stream,bfh);
       write_bih(stream,bih);
 
-      unsigned int padding = (4 - ((3 * width_) % 4)) % 4;
-      char padding_data[4] = { 0x00, 0x00, 0x00, 0x00 };
+	  std::vector<unsigned char> colorPalette(1024);
+	  for (int i = 0; i < 256; i++)
+	  {
+		  colorPalette[i * 4 + 0] = (unsigned char)(i); //bule
+		  colorPalette[i * 4 + 1] = (unsigned char)(i); //green
+		  colorPalette[i * 4 + 2] = (unsigned char)(i); //red
+		  colorPalette[i * 4 + 3] = (unsigned char)0; //padding
+	  }
+	  stream.write(reinterpret_cast<const char*>(colorPalette.data()), sizeof(unsigned char) * 1024);
 
+
+	  unsigned int padding = (4 - ((1 * width_) % 4)) % 4;
+	  char padding_data[4] = { 0x00, 0x00 ,0x00 ,0x00 };
+	  
       for (unsigned int i = 0; i < height_; ++i)
       {
          const unsigned char* data_ptr = &data_[(row_increment_ * (height_ - i - 1))];
@@ -1505,6 +1531,9 @@ private:
       data_.resize(height_ * row_increment_);
    }
 
+   bitmap_file_header _bfh;
+   bitmap_information_header _bih;
+
    void load_bitmap()
    {
       std::ifstream stream(file_name_.c_str(),std::ios::binary);
@@ -1527,6 +1556,9 @@ private:
       read_bfh(stream,bfh);
       read_bih(stream,bih);
 
+	  _bfh = bfh;
+	  _bih = bih;
+
       if (bfh.type != 19778)
       {
          bfh.clear();
@@ -1538,14 +1570,14 @@ private:
          return;
       }
 
-      if (bih.bit_count != 24)
+      if (bih.bit_count != 8 && bih.bit_count != 24)
       {
          bfh.clear();
          bih.clear();
 
          stream.close();
 
-         std::cerr << "bitmap_image::load_bitmap() ERROR: bitmap_image - Invalid bit depth " << bih.bit_count << " expected 24." << std::endl;
+         std::cerr << "bitmap_image::load_bitmap() ERROR: bitmap_image - Invalid bit depth " << bih.bit_count << " expected 8 or 24." << std::endl;
 
          return;
       }
@@ -1567,15 +1599,15 @@ private:
 
       bytes_per_pixel_ = bih.bit_count >> 3;
 
-      unsigned int padding = (4 - ((3 * width_) % 4)) % 4;
-      char padding_data[4] = {0,0,0,0};
-
+      unsigned int padding = (4 - ((bytes_per_pixel_ * width_) % 4)) % 4;
+      char padding_data[4] = {0, 0, 0, 0};
+	  
       std::size_t bitmap_file_size = file_size(file_name_);
 
-      std::size_t bitmap_logical_size = (height_ * width_ * bytes_per_pixel_) +
-                                        (height_ * padding)                   +
-                                         bih.struct_size()                    +
-                                         bfh.struct_size()                    ;
+	  std::size_t bitmap_logical_size =
+		  (height_ * width_ * bytes_per_pixel_) +
+		  height_ * padding +
+		  bfh.off_bits;
 
       if (bitmap_file_size != bitmap_logical_size)
       {
@@ -1591,8 +1623,11 @@ private:
          return;
       }
 
-      create_bitmap();
+	  const int const offset = bfh.off_bits - bih.struct_size() - bfh.struct_size();
+	  std::vector<unsigned char> colorPalette(offset);
+	  stream.read(reinterpret_cast<char*>(colorPalette.data()), sizeof(char) * offset);
 
+      create_bitmap();
       for (unsigned int i = 0; i < height_; ++i)
       {
          unsigned char* data_ptr = row(height_ - i - 1); // read in inverted row order
