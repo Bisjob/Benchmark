@@ -28,11 +28,12 @@ namespace CSharp
             var img = new Bitmap(@"..\..\0.bmp");
             long readingTime = sw.ElapsedMilliseconds;
             Console.WriteLine("Image readed in " + readingTime + " ms");
-            
+
             sw.Restart();
             var buffer = ImageToByte(img);
             long extractionTime = sw.ElapsedMilliseconds;
             Console.WriteLine("Buffer extracted in " + extractionTime + " ms");
+            
             if (count == 1)
             {
                 sw.Restart();
@@ -78,39 +79,28 @@ namespace CSharp
             img.UnlockBits(data);
             return buffer;
         }
-
-
-        //static Bitmap ByteToImage(byte[] buffer, int width, int height)
-        //{
-        //    Bitmap img = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
-        //    var data = img.LockBits(new Rectangle(0, 0, img.Width, img.Height), ImageLockMode.WriteOnly, img.PixelFormat);
-
-        //    Marshal.Copy(buffer, 0, data.Scan0, width * height);
-
-        //    img.UnlockBits(data);
-        //    return img;
-        //}
-
+        
         static void SaveImage(byte[] buffer, int width, int height, string filename)
         {
-            int padding = (width % 4) != 0 ? 4 - (width % 4) : 0; //determine padding needed for bitmap file
-                                                                          //if (padding != 0 || selection.Width != this.width || selection.Height != this.height)
+            int padding = (4 - ((1 * width) % 4)) % 4;
             {
-                byte[] tempBuffer = new byte[width * height + padding * height];
+                byte[] tmp = new byte[width * height + padding * height];
 
                 unsafe
                 {
-                    fixed (byte* ptrInF = buffer, ptrOutF = tempBuffer)
+                    fixed (byte* ptrInF = buffer, ptrOutF = tmp)
                     {
-                        byte* ptrIn = ptrInF;
                         byte* ptrOut = ptrOutF;
-                        for (int y = 0; y < height; y++)
+                        
+                        for (int y = 0; y < height; ++y)
+                        {
+                            byte* rowIn = ptrInF + ((width + padding) * (height - y - 1));
                             for (int x = 0; x < width; x++)
-                                *(ptrOut + (height - 1 - y) * width + (height - 1 - y) * padding + x) = *(ptrIn + x + (y) * width);
+                                *(ptrOut + x + y * (width + padding)) = *(rowIn++);
+                        }
                     }
                 }
-
-                GrayBMP.SaveAsGrayScale(tempBuffer, width, height, filename);
+                GrayBMP.SaveAsGrayScale(tmp, width, height, filename);
             }
         }
 

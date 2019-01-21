@@ -297,23 +297,26 @@ namespace CSharp_ILGUP
 
         static void SaveImage(byte[] buffer, int width, int height, string filename)
         {
-            int padding = (width % 4) != 0 ? 4 - (width % 4) : 0; //determine padding needed for bitmap file
-                                                                  //if (padding != 0 || selection.Width != this.width || selection.Height != this.height)
-            byte[] tempBuffer = new byte[width * height + padding * height];
-
-            unsafe
+            int padding = (4 - ((1 * width) % 4)) % 4;
             {
-                fixed (byte* ptrInF = buffer, ptrOutF = tempBuffer)
-                {
-                    byte* ptrIn = ptrInF;
-                    byte* ptrOut = ptrOutF;
-                    for (int y = 0; y < height; y++)
-                        for (int x = 0; x < width; x++)
-                            *(ptrOut + (height - 1 - y) * width + (height - 1 - y) * padding + x) = *(ptrIn + x + (y) * width);
-                }
-            }
+                byte[] tmp = new byte[width * height + padding * height];
 
-            GrayBMP.SaveAsGrayScale(tempBuffer, width, height, filename);
+                unsafe
+                {
+                    fixed (byte* ptrInF = buffer, ptrOutF = tmp)
+                    {
+                        byte* ptrOut = ptrOutF;
+
+                        for (int y = 0; y < height; ++y)
+                        {
+                            byte* rowIn = ptrInF + ((width + padding) * (height - y - 1));
+                            for (int x = 0; x < width; x++)
+                                *(ptrOut + x + y * (width + padding)) = *(rowIn++);
+                        }
+                    }
+                }
+                GrayBMP.SaveAsGrayScale(tmp, width, height, filename);
+            }
         }
 
         static void Main(string[] args)
@@ -382,7 +385,7 @@ namespace CSharp_ILGUP
                                 }
 
                                 sw.Restart();
-                                SaveImage(outputBuffer.Select(v => (byte)v).ToArray<byte>(), img.Width, img.Height, "CSharp_ILGPU_" + acceleratorId.AcceleratorType + ".bmp");
+                                SaveImage(outputBuffer.Select(v => (byte)v).ToArray<byte>(), img.Width, img.Height, "CSharp_ILGPU_" + acceleratorId.AcceleratorType + "_res.bmp");
                                 saveTime = sw.ElapsedMilliseconds;
                                 Console.WriteLine("Image saved in " + saveTime + " ms");
                                 long total = readingTime + extractionTime + allocatingCache + allocatingContext + allocatingAccel + processTime + saveTime;
@@ -398,7 +401,7 @@ namespace CSharp_ILGUP
                                 Console.WriteLine("Image processed for cpu in " + processTime + " ms");
 
                                 sw.Restart();
-                                SaveImage(outputBuffer.Select(v => (byte)v).ToArray<byte>(), img.Width, img.Height, "CSharp_ILGPU_" + accel + ".bmp");
+                                SaveImage(outputBuffer.Select(v => (byte)v).ToArray<byte>(), img.Width, img.Height, "CSharp_ILGPU_" + accel + "_res.bmp");
                                 saveTime = sw.ElapsedMilliseconds;
                                 Console.WriteLine("Image saved in " + saveTime + " ms");
                                 long total = readingTime + extractionTime + processTime + saveTime;
@@ -415,7 +418,7 @@ namespace CSharp_ILGUP
                                 Console.WriteLine("Image processed for gpu in " + processTime + " ms");
 
                                 sw.Restart();
-                                SaveImage(outputBuffer.Select(v => (byte)v).ToArray<byte>(), img.Width, img.Height, "CSharp_ILGPU_" + accel + ".bmp");
+                                SaveImage(outputBuffer.Select(v => (byte)v).ToArray<byte>(), img.Width, img.Height, "CSharp_ILGPU_" + accel + "_res.bmp");
                                 saveTime = sw.ElapsedMilliseconds;
                                 Console.WriteLine("Image saved in " + saveTime + " ms");
                                 long total = readingTime + extractionTime + processTime + saveTime;

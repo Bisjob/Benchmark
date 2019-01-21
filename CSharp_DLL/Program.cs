@@ -99,24 +99,26 @@ unsafe class Program
 
     static void SaveImage(IntPtr buffer, int width, int height, string filename)
     {
-        int padding = (width % 4) != 0 ? 4 - (width % 4) : 0; //determine padding needed for bitmap file
-                                                              //if (padding != 0 || selection.Width != this.width || selection.Height != this.height)
+        int padding = (4 - ((1 * width) % 4)) % 4;
         {
-            byte[] tempBuffer = new byte[width * height + padding * height];
+            byte[] tmp = new byte[width * height + padding * height];
 
             unsafe
             {
-                fixed (byte* ptrOutF = tempBuffer)
+                fixed (byte* ptrOutF = tmp)
                 {
                     byte* ptrIn = (byte*)buffer.ToPointer();
                     byte* ptrOut = ptrOutF;
-                    for (int y = 0; y < height; y++)
+
+                    for (int y = 0; y < height; ++y)
+                    {
+                        byte* rowIn = ptrIn + ((width + padding) * (height - y - 1));
                         for (int x = 0; x < width; x++)
-                            *(ptrOut + (height - 1 - y) * width + (height - 1 - y) * padding + x) = *(ptrIn + x + (y) * width);
+                            *(ptrOut + x + y * (width + padding)) = *(rowIn++);
+                    }
                 }
             }
-
-            GrayBMP.SaveAsGrayScale(tempBuffer, width, height, filename);
+            GrayBMP.SaveAsGrayScale(tmp, width, height, filename);
         }
     }
 }
