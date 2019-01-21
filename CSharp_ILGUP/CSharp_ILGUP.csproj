@@ -7,7 +7,7 @@
     <ProjectGuid>{4BA6D299-B0DF-4309-A6FF-C2BF3616CCFA}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>CSharp_ILGUP</RootNamespace>
-    <AssemblyName>CSharp_ILGUP</AssemblyName>
+    <AssemblyName>CSharp_ILGPU</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

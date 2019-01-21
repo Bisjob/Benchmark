@@ -19,6 +19,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Gradient_CLR", "Gradient_CL
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csharp_CLR", "Csharp_CLR\Csharp_CLR.csproj", "{A6BB336F-C149-45E2-A708-8596707AEC43}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86B2BCE6-5648-4E56-86F8-9233EB38D811}"
+	ProjectSection(SolutionItems) = preProject
+		0.bmp = 0.bmp
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
